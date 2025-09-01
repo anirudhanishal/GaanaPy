@@ -1,7 +1,7 @@
 import asyncio
 
 class Songs:
-    async def search_songs(self, search_query: str, limit: int) -> dict:  # change return type to dict
+    async def search_songs(self, search_query: str, limit: int) -> dict:  # changed return type to dict
         aiohttp = self.aiohttp
         endpoints = self.api_endpoints
         errors = self.errors
@@ -10,14 +10,14 @@ class Songs:
         track_ids = []
         for i in range(0,int(limit)):
             try:
-                track_ids.append(result['gr'][0]['gd'][int(i)]['seo'])
+              track_ids.append(result['gr'][0]['gd'][int(i)]['seo'])
             except (IndexError, TypeError, KeyError):
-                pass
+              pass
         if len(track_ids) == 0:
-            return await errors.no_results()
+          return await errors.no_results()
         track_info = await self.get_track_info(track_ids)
-
-        # Wrap the original array in {"success": true, "data": [...]}
+        
+        # Wrap in success/data format
         return {"success": True, "data": track_info}
 
     async def get_track_info(self, track_id: list) -> list:
@@ -25,9 +25,9 @@ class Songs:
         endpoints = self.api_endpoints
         track_info = []
         for i in track_id:
-            response = await aiohttp.post(endpoints.song_details_url + i)
-            result = await response.json()
-            track_info.extend(await asyncio.gather(*[self.format_json_songs(i) for i in result['tracks']]))
+          response = await aiohttp.post(endpoints.song_details_url + i)
+          result = await response.json()
+          track_info.extend(await asyncio.gather(*[self.format_json_songs(i) for i in result['tracks']]))
         return track_info
 
     async def format_json_songs(self, results: dict) -> dict:
@@ -35,9 +35,9 @@ class Songs:
         errors = self.errors
         data = {}
         try:
-            data['seokey'] = results['seokey']
+          data['seokey'] = results['seokey']
         except KeyError:
-            return await errors.invalid_seokey()
+          return await errors.invalid_seokey()
         data['album_seokey'] = results['albumseokey']
         data['track_id'] = results['track_id']
         data['title'] = results['track_title']
@@ -63,17 +63,18 @@ class Songs:
         data['images']['urls']['medium_artwork'] = (results['artwork_web'])
         data['images']['urls']['small_artwork'] = (results['artwork'])
         data['stream_urls'] = {'urls': {}}
-
+        
         try:
-            base_url = await functions.decryptLink(results['urls']['medium']['message'])
-            data['stream_urls']['urls']['very_high_quality'] = base_url.replace("64.mp4", "320.mp4")
-            data['stream_urls']['urls']['high_quality'] = base_url.replace("64.mp4", "128.mp4")
-            data['stream_urls']['urls']['medium_quality'] = base_url
-            data['stream_urls']['urls']['low_quality'] = base_url.replace("64.mp4", "16.mp4")
+          base_url = await functions.decryptLink(results['urls']['medium']['message'])
+        
+          data['stream_urls']['urls']['very_high_quality'] = base_url.replace("64.mp4", "320.mp4")
+          data['stream_urls']['urls']['high_quality'] = base_url.replace("64.mp4", "128.mp4")
+          data['stream_urls']['urls']['medium_quality'] = base_url
+          data['stream_urls']['urls']['low_quality'] = base_url.replace("64.mp4", "16.mp4")
         except KeyError:
-            data['stream_urls']['urls']['very_high_quality'] = ""
-            data['stream_urls']['urls']['high_quality'] = ""
-            data['stream_urls']['urls']['medium_quality'] = ""
-            data['stream_urls']['urls']['low_quality'] = ""
-
+          data['stream_urls']['urls']['very_high_quality'] = ""
+          data['stream_urls']['urls']['high_quality'] = ""
+          data['stream_urls']['urls']['medium_quality'] = ""
+          data['stream_urls']['urls']['low_quality'] = ""
+          
         return data
