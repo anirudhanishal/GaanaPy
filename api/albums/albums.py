@@ -1,4 +1,5 @@
 import asyncio
+from urllib.parse import urlparse
 
 class Albums:
     async def search_albums(self, search_query: str, limit: int) -> dict:
@@ -26,8 +27,23 @@ class Albums:
         if info is True:
             self.info = True
 
+        def extract_seokey(input_str: str) -> str:
+            if input_str.startswith("http"):
+                parsed_url = urlparse(input_str)
+                path_parts = parsed_url.path.strip("/").split("/")
+                if len(path_parts) >= 2 and path_parts[0] == "album":
+                    return path_parts[1]
+                else:
+                    raise ValueError("Invalid Gaana album URL")
+            return input_str
+
         for i in album_id:
-            response = await aiohttp.post(endpoints.album_details_url + i)
+            try:
+                seokey = extract_seokey(i)
+            except ValueError:
+                continue  # Skip invalid URLs
+
+            response = await aiohttp.post(endpoints.album_details_url + seokey)
             result = await response.json()
             album_info.extend(await asyncio.gather(
                 *[self.format_json_albums(result) for _ in range(0, 1)]
@@ -41,7 +57,23 @@ class Albums:
     async def get_album_tracks(self, album_id: str) -> list:
         aiohttp = self.aiohttp
         endpoints = self.api_endpoints
-        response = await aiohttp.post(endpoints.album_details_url + album_id)
+
+        def extract_seokey(input_str: str) -> str:
+            if input_str.startswith("http"):
+                parsed_url = urlparse(input_str)
+                path_parts = parsed_url.path.strip("/").split("/")
+                if len(path_parts) >= 2 and path_parts[0] == "album":
+                    return path_parts[1]
+                else:
+                    raise ValueError("Invalid Gaana album URL")
+            return input_str
+
+        try:
+            seokey = extract_seokey(album_id)
+        except ValueError:
+            return []
+
+        response = await aiohttp.post(endpoints.album_details_url + seokey)
         result = await response.json()
         track_seokeys = [i['seokey'] for i in result['tracks']]
         result = await self.get_track_info(track_seokeys)
