@@ -1,7 +1,7 @@
 import asyncio
 
 class Songs:
-    async def search_songs(self, search_query: str, limit: int) -> dict:  # changed return type
+    async def search_songs(self, search_query: str, limit: int) -> dict:
         aiohttp = self.aiohttp
         endpoints = self.api_endpoints
         errors = self.errors
@@ -16,9 +16,9 @@ class Songs:
         if len(track_ids) == 0:
           return await errors.no_results()
         track_info = await self.get_track_info(track_ids)
-        return {"success": True, "data": track_info}  # wrapped
+        return {"success": True, "data": track_info}  # wrapped here only
 
-    async def get_track_info(self, track_id: list) -> dict:  # changed return type
+    async def get_track_info(self, track_id: list) -> list:  # returns plain list
         aiohttp = self.aiohttp
         endpoints = self.api_endpoints
         track_info = []
@@ -26,7 +26,7 @@ class Songs:
           response = await aiohttp.post(endpoints.song_details_url + i)
           result = await response.json()
           track_info.extend(await asyncio.gather(*[self.format_json_songs(i) for i in result['tracks']]))
-        return {"success": True, "data": track_info}  # wrapped
+        return track_info  # plain list, no wrapper
 
     async def format_json_songs(self, results: dict) -> dict:
         functions = self.functions
