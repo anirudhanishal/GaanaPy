@@ -17,7 +17,6 @@ class Songs:
         if len(track_ids) == 0:
             return await errors.no_results()
 
-        # ✅ get_track_info already wraps with {"success": True, "data": ...}
         return await self.get_track_info(track_ids)
 
     async def get_track_info(self, track_id: list) -> dict:
@@ -31,7 +30,6 @@ class Songs:
                 *[self.format_json_songs(i) for i in result['tracks']]
             ))
 
-        # ✅ Wrap only here
         return {
             "success": True,
             "data": track_info
