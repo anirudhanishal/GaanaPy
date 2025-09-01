@@ -25,7 +25,7 @@ class Songs:
             "data": track_info
         }
 
-    async def get_track_info(self, track_id: list) -> list:
+    async def get_track_info(self, track_id: list) -> dict:
         aiohttp = self.aiohttp
         endpoints = self.api_endpoints
         track_info = []
@@ -35,7 +35,12 @@ class Songs:
             track_info.extend(await asyncio.gather(
                 *[self.format_json_songs(i) for i in result['tracks']]
             ))
-        return track_info
+
+        # ✅ Wrap here too
+        return {
+            "success": True,
+            "data": track_info
+        }
 
     async def format_json_songs(self, results: dict) -> dict:
         functions = self.functions
@@ -45,6 +50,7 @@ class Songs:
             data['seokey'] = results['seokey']
         except KeyError:
             return await errors.invalid_seokey()
+
         data['album_seokey'] = results['albumseokey']
         data['track_id'] = results['track_id']
         data['title'] = results['track_title']
