@@ -14,7 +14,7 @@ class Songs:
             except (IndexError, TypeError, KeyError):
               pass
         if len(track_ids) == 0:
-          return {"success": False, "data": await errors.no_results()}
+          return await errors.no_results()
         track_info = await self.get_track_info(track_ids)
         return {"success": True, "data": track_info}
 
@@ -64,6 +64,7 @@ class Songs:
         
         try:
           base_url = await functions.decryptLink(results['urls']['medium']['message'])
+        
           data['stream_urls']['urls']['very_high_quality'] = base_url.replace("64.mp4", "320.mp4")
           data['stream_urls']['urls']['high_quality'] = base_url.replace("64.mp4", "128.mp4")
           data['stream_urls']['urls']['medium_quality'] = base_url
